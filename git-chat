@@ -10,9 +10,10 @@ inGitChatRepo () {
 	if [ ! -f ".gitchat" ]; then
 		return 1
 	fi
+
+	return 0
 }
 
-BASEDIR="/home/edison/git-chat"
 ACTION=$1
 
 # Action args start at $2
@@ -26,8 +27,27 @@ if [ "$ACTION" = "new-chat" ]; then
 	fi
 
 	git init $CHATNAME
-	
+	:>| $CHATNAME/.gitchat	
 
-elif [ "$ACTION" = "set-identity" ]; then
-	$BASEDIR/set-identity "$@"
+elif [ "$ACTION" = "new-message" ]; then
+	if ! inGitChatRepo; then
+		echo "Not in git chat repo! Create one with 'git-chat new-chat foo'"
+		exit 1
+	fi
+
+	MESSAGE="$2"
+
+	if [ "$MESSAGE" = "" ]; then
+		echo "Message required!"
+		exit 1
+	fi
+
+	git commit --allow-empty -m "$MESSAGE"
+elif [ "$ACTION" = "show-messages" ]; then
+	if ! inGitChatRepo; then
+		echo "Not in git chat repo! Create one with 'git-chat new-chat foo'"
+		exit 1	
+	fi
+
+	git log --pretty=format:"%h - %an, %ar : %s"
 fi

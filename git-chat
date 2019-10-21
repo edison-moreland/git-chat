@@ -19,6 +19,7 @@ ACTION=$1
 # Action args start at $2
 if [ "$ACTION" = "new-chat" ]; then
 	CHATNAME="$2"
+	UPSTREAM="$3"
 
 	if [ "$CHATNAME" = "" ]; then
 		# Replace with more robust check!
@@ -27,7 +28,25 @@ if [ "$ACTION" = "new-chat" ]; then
 	fi
 
 	git init $CHATNAME
-	:>| $CHATNAME/.gitchat	
+	pushd $CHATNAME
+		:>| $CHATNAME/.gitchat
+		
+		if [ ! "$UPSTREAM" = "" ]; then
+			git remote add origin "$UPSTREAM"
+			git pull
+		fi
+	popd	
+
+elif [ "$ACTION" = "set-upstream" ]; then
+	UPSTREAM="$2"
+
+	if [ "$UPSTREAM" = "" ]; then
+		echo "Upstream URL required!"
+		exit 1
+	fi
+
+	git remote add origin "$UPSTREAM"
+	git pull
 
 elif [ "$ACTION" = "new-message" ]; then
 	if ! inGitChatRepo; then

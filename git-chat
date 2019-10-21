@@ -17,7 +17,14 @@ inGitChatRepo () {
 ACTION=$1
 
 # Action args start at $2
-if [ "$ACTION" = "new-chat" ]; then
+if [ "$ACTION" = "help" ]; then
+	echo "git-chat new-chat <CHATNAME> <UPSTREAM>"
+	echo "git-chat clone-chat <UPSTREAM>"
+	echo "git-chat new-message <MESSAGE>"
+	echo "git-chat show-messages"
+
+elif [ "$ACTION" = "new-chat" ]; then
+	# Initialize local repo and remote
 	CHATNAME="$2"
 	UPSTREAM="$3"
 
@@ -27,17 +34,20 @@ if [ "$ACTION" = "new-chat" ]; then
 		exit 1
 	fi
 
+	if [ "$UPSTREAM" = "" ]; then
+		echo "Upstream required"
+	fi
+
 	git init $CHATNAME
 	pushd $CHATNAME
-		:>| $CHATNAME/.gitchat
-		
-		if [ ! "$UPSTREAM" = "" ]; then
-			git remote add origin "$UPSTREAM"
-			git pull
-		fi
+		:>| .gitchat
+		git commit --allow-empty -m "New git chat"
+		git remote add origin "$UPSTREAM"
+		git push -u origin master
+		git branch --set-upstream-to=origin/master master
 	popd	
 
-elif [ "$ACTION" = "set-upstream" ]; then
+elif [ "$ACTION" = "clone-chat" ]; then
 	UPSTREAM="$2"
 
 	if [ "$UPSTREAM" = "" ]; then
@@ -45,8 +55,7 @@ elif [ "$ACTION" = "set-upstream" ]; then
 		exit 1
 	fi
 
-	git remote add origin "$UPSTREAM"
-	git pull
+	git clone "$UPSTREAM"
 
 elif [ "$ACTION" = "new-message" ]; then
 	if ! inGitChatRepo; then
@@ -60,13 +69,16 @@ elif [ "$ACTION" = "new-message" ]; then
 		echo "Message required!"
 		exit 1
 	fi
-
+	git pull
 	git commit --allow-empty -m "$MESSAGE"
+	git push
+
 elif [ "$ACTION" = "show-messages" ]; then
 	if ! inGitChatRepo; then
 		echo "Not in git chat repo! Create one with 'git-chat new-chat foo'"
 		exit 1	
 	fi
 
-	git log --pretty=format:"%h - %an, %ar : %s"
+	git pull
+	git log --reverse --pretty=format:"%h - %an, %ar : %s"
 fi

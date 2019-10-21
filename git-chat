@@ -1,0 +1,33 @@
+#!/bin/bash
+
+inGitChatRepo () {
+	# Check that we're in a git repo
+	if [ ! -d ".git" ]; then
+		return 1
+	fi
+
+	# Check that it's a GitChat repo
+	if [ ! -f ".gitchat" ]; then
+		return 1
+	fi
+}
+
+BASEDIR="/home/edison/git-chat"
+ACTION=$1
+
+# Action args start at $2
+if [ "$ACTION" = "new-chat" ]; then
+	CHATNAME="$2"
+
+	if [ "$CHATNAME" = "" ]; then
+		# Replace with more robust check!
+		echo "Chat name required"
+		exit 1
+	fi
+
+	git init $CHATNAME
+	
+
+elif [ "$ACTION" = "set-identity" ]; then
+	$BASEDIR/set-identity "$@"
+fi

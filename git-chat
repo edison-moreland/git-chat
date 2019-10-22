@@ -21,7 +21,7 @@ if [ "$ACTION" = "help" ]; then
 	echo "git-chat new-chat <CHATNAME> <UPSTREAM>"
 	echo "git-chat clone-chat <UPSTREAM>"
 	echo "git-chat new-message <MESSAGE>"
-	echo "git-chat show-messages"
+	echo "git-chat show-messages <optional:COUNT>"
 
 elif [ "$ACTION" = "new-chat" ]; then
 	# Initialize local repo and remote
@@ -79,6 +79,14 @@ elif [ "$ACTION" = "show-messages" ]; then
 		exit 1	
 	fi
 
+	COUNT=$2
+	if [ "$COUNT" = "" ]; then
+		# Should also check that COUNT is numerical
+		# tput isn't always available, stty should be used if it can't be found
+		COUNT=$(tput lines)
+		COUNT=$(( COUNT - 1 ))
+	fi
+
 	git pull
-	git log --reverse --pretty=format:"%h - %an, %ar : %s"
+	git log -n $COUNT --reverse --pretty=format:"%h - %an, %ar : %s"
 fi

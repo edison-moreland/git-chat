@@ -104,7 +104,8 @@ case "$ACTION" in
 	fi
 
 	ggit pull
-	git log -n $COUNT --reverse --pretty=format:"%h - %an, %ar : %s"
+	git log -n $COUNT --reverse --pretty=format:'%at | %an | %s'
+	#"%an, %ar : %s"
 ;;
 
 "help"|*)

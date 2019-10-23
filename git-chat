@@ -17,13 +17,8 @@ inGitChatRepo () {
 ACTION=$1
 
 # Action args start at $2
-if [ "$ACTION" = "help" ]; then
-	echo "git-chat new-chat <CHATNAME> <UPSTREAM>"
-	echo "git-chat clone-chat <UPSTREAM>"
-	echo "git-chat new-message <MESSAGE>"
-	echo "git-chat show-messages <optional:COUNT>"
-
-elif [ "$ACTION" = "new-chat" ]; then
+case "$ACTION" in
+"new-chat")
 	# Initialize local repo and remote
 	CHATNAME="$2"
 	UPSTREAM="$3"
@@ -46,8 +41,8 @@ elif [ "$ACTION" = "new-chat" ]; then
 		git push -u origin master
 		git branch --set-upstream-to=origin/master master
 	popd || exit 1
-
-elif [ "$ACTION" = "clone-chat" ]; then
+;;
+"clone-chat")
 	UPSTREAM="$2"
 
 	if [ "$UPSTREAM" = "" ]; then
@@ -56,8 +51,8 @@ elif [ "$ACTION" = "clone-chat" ]; then
 	fi
 
 	git clone "$UPSTREAM"
-
-elif [ "$ACTION" = "new-message" ]; then
+;;
+"new-message")
 	if ! inGitChatRepo; then
 		echo "Not in git chat repo! Create one with 'git-chat new-chat foo'"
 		exit 1
@@ -72,8 +67,8 @@ elif [ "$ACTION" = "new-message" ]; then
 	git pull
 	git commit --allow-empty -m "$MESSAGE"
 	git push
-
-elif [ "$ACTION" = "show-messages" ]; then
+;;
+"show-messages")
 	if ! inGitChatRepo; then
 		echo "Not in git chat repo! Create one with 'git-chat new-chat foo'"
 		exit 1	
@@ -89,4 +84,14 @@ elif [ "$ACTION" = "show-messages" ]; then
 
 	git pull
 	git log -n $COUNT --reverse --pretty=format:"%h - %an, %ar : %s"
-fi
+;;
+"help"|*)
+  cat <<EOF
+git-chat new-chat <CHATNAME> <UPSTREAM>
+git-chat clone-chat <UPSTREAM>
+git-chat new-message <MESSAGE>
+git-chat show-messages <optional:COUNT>
+git-chat help
+EOF
+;;
+esac

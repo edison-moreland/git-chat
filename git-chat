@@ -14,9 +14,27 @@ inGitChatRepo () {
 	return 0
 }
 
-ACTION=$1
+# Check for git
+if ! git --version &>/dev/null; then
+  echo "Git is not insalled!"
+  exit 1
+fi
 
-# Action args start at $2
+# Setup git wrapper to optionally make git quiet
+if [ "$1" = "quiet-git" ]; then
+  ggit () {
+    # Make git quiet
+    git "$@" &> /dev/null
+  }
+  shift
+else
+  ggit () {
+    git "$@"
+  }
+fi
+
+# Now the fun begins
+ACTION=$1
 case "$ACTION" in
 "new-chat")
 	# Initialize local repo and remote
@@ -33,13 +51,13 @@ case "$ACTION" in
 		echo "Upstream required"
 	fi
 
-	git init "$CHATNAME"
+	ggit init "$CHATNAME"
 	pushd "$CHATNAME" || exit 1
 		:>| .gitchat
-		git commit --allow-empty -m "New git chat"
-		git remote add origin "$UPSTREAM"
-		git push -u origin master
-		git branch --set-upstream-to=origin/master master
+		ggit commit --allow-empty -m "New git chat"
+		ggit remote add origin "$UPSTREAM"
+		ggit push -u origin master
+		ggit branch --set-upstream-to=origin/master master
 	popd || exit 1
 ;;
 "clone-chat")
@@ -50,7 +68,7 @@ case "$ACTION" in
 		exit 1
 	fi
 
-	git clone "$UPSTREAM"
+	ggit clone "$UPSTREAM"
 ;;
 "new-message")
 	if ! inGitChatRepo; then
@@ -64,9 +82,9 @@ case "$ACTION" in
 		echo "Message required!"
 		exit 1
 	fi
-	git pull
-	git commit --allow-empty -m "$MESSAGE"
-	git push
+	ggit pull
+	ggit commit --allow-empty -m "$MESSAGE"
+	ggit push
 ;;
 "show-messages")
 	if ! inGitChatRepo; then
@@ -82,16 +100,19 @@ case "$ACTION" in
 		COUNT=$(( COUNT - 1 ))
 	fi
 
-	git pull
-	git log -n $COUNT --reverse --pretty=format:"%h - %an, %ar : %s"
+	ggit pull
+	ggit log -n $COUNT --reverse --pretty=format:"%h - %an, %ar : %s"
 ;;
 "help"|*)
   cat <<EOF
-git-chat new-chat <CHATNAME> <UPSTREAM>
-git-chat clone-chat <UPSTREAM>
-git-chat new-message <MESSAGE>
-git-chat show-messages <optional:COUNT>
-git-chat help
+Usage: git-chat [quiet-git] [ACTION] [ACTION-ARGS]
+Specifying "quiet-git" will suppress all output from git
+Actions:
+  new-chat <CHATNAME> <UPSTREAM>
+  clone-chat <UPSTREAM>
+  new-message <MESSAGE>
+  show-messages <optional:COUNT>
+  help
 EOF
 ;;
 esac

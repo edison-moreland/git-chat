@@ -38,14 +38,14 @@ elif [ "$ACTION" = "new-chat" ]; then
 		echo "Upstream required"
 	fi
 
-	git init $CHATNAME
-	pushd $CHATNAME
+	git init "$CHATNAME"
+	pushd "$CHATNAME" || exit 1
 		:>| .gitchat
 		git commit --allow-empty -m "New git chat"
 		git remote add origin "$UPSTREAM"
 		git push -u origin master
 		git branch --set-upstream-to=origin/master master
-	popd	
+	popd || exit 1
 
 elif [ "$ACTION" = "clone-chat" ]; then
 	UPSTREAM="$2"

@@ -21,7 +21,7 @@ if ! git --version &>/dev/null; then
 fi
 
 # Setup git wrapper to optionally make git quiet
-if [ "$1" = "quiet-git" ]; then
+if [ "$1" = "quiet" ]; then
   ggit () {
     # Make git quiet
     git "$@" &> /dev/null
@@ -60,6 +60,7 @@ case "$ACTION" in
 		ggit branch --set-upstream-to=origin/master master
 	popd || exit 1
 ;;
+
 "clone-chat")
 	UPSTREAM="$2"
 
@@ -70,6 +71,7 @@ case "$ACTION" in
 
 	ggit clone "$UPSTREAM"
 ;;
+
 "new-message")
 	if ! inGitChatRepo; then
 		echo "Not in git chat repo! Create one with 'git-chat new-chat foo'"
@@ -86,6 +88,7 @@ case "$ACTION" in
 	ggit commit --allow-empty -m "$MESSAGE"
 	ggit push
 ;;
+
 "show-messages")
 	if ! inGitChatRepo; then
 		echo "Not in git chat repo! Create one with 'git-chat new-chat foo'"
@@ -101,12 +104,13 @@ case "$ACTION" in
 	fi
 
 	ggit pull
-	ggit log -n $COUNT --reverse --pretty=format:"%h - %an, %ar : %s"
+	git log -n $COUNT --reverse --pretty=format:"%h - %an, %ar : %s"
 ;;
+
 "help"|*)
   cat <<EOF
-Usage: git-chat [quiet-git] [ACTION] [ACTION-ARGS]
-Specifying "quiet-git" will suppress all output from git
+Usage: git-chat [quiet] [ACTION] [ACTION-ARGS]
+Specifying "quiet" will suppress all un-needed output from git
 Actions:
   new-chat <CHATNAME> <UPSTREAM>
   clone-chat <UPSTREAM>
